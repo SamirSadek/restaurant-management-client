@@ -1,15 +1,18 @@
 import { useContext } from "react";
 import { Link } from "react-router-dom";
 import { AuthContext } from "../../provider/AuthProvider";
+import { FaShoppingCart  } from 'react-icons/fa';
+import useCart from "../../hooks/useCart";
 
 const Navbar = () => {
 
+  const [cart] = useCart()
   const { user, logOut } = useContext(AuthContext);
-  const handleLogout =() =>{
+  const handleLogout = () => {
     logOut()
-    .then()
-    .catch(error => console.log(error))
-  }
+      .then()
+      .catch((error) => console.log(error));
+  };
   const navItems = (
     <>
       <li>
@@ -21,18 +24,29 @@ const Navbar = () => {
       <li>
         <Link to="/order/salads">Order Food</Link>
       </li>
-      {user ? 
+      <li>
+        <Link to="/">
+          <button className="btn">
+          <FaShoppingCart />
+            <div className="badge badge-secondary">+{cart.length}</div>
+          </button>
+        </Link>
+      </li>
+
+      {user ? (
         <>
-        <li>{user.displayName}</li>
-        <button onClick={handleLogout} className="text-green-600" >Logout</button>
+        {/* <li>{user.displayName}</li> */}
+          <button onClick={handleLogout} className="text-green-600">
+            Logout
+          </button>
         </>
-      : 
+      ) : (
         <>
           <li>
             <Link to="/login">Login</Link>
           </li>
         </>
-      }
+      )}
     </>
   );
   return (
@@ -66,7 +80,7 @@ const Navbar = () => {
           <a className="normal-case font-bold text-2xl">Bistro</a>
         </div>
         <div className="navbar-center hidden lg:flex">
-          <ul className="menu menu-horizontal px-1">{navItems}</ul>
+          <ul className="menu menu-horizontal px-1 items-center">{navItems}</ul>
         </div>
         <div className="navbar-end">
           <a className="btn">Button</a>
