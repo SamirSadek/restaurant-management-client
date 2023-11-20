@@ -4,10 +4,13 @@ import { useForm } from "react-hook-form";
 import { AuthContext } from "../../provider/AuthProvider";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
+import SocialLogin from "../../components/SocialLogin";
 
 const Signup = () => {
-  const navigate = useNavigate()
-  const {createUser, updateUserProfile} = useContext(AuthContext)
+  const axiosPublic = useAxiosPublic();
+  const navigate = useNavigate();
+  const { createUser, updateUserProfile } = useContext(AuthContext);
   const {
     register,
     handleSubmit,
@@ -17,26 +20,33 @@ const Signup = () => {
 
   const onSubmit = (data) => {
     console.log(data);
-    createUser(data.email , data.password)
-    .then(result =>{
-      const loggedUser = result.user
-      console.log(loggedUser)
-      updateUserProfile(data.name , data.photoURL)
-      .then(()=>{
-        console.log('profile info updated')
-        reset()
-        Swal.fire({
-          position: "top-end",
-          icon: "success",
-          title: "SignUp Successful",
-          showConfirmButton: false,
-          timer: 1500
-        });
-        navigate('/')
-      })
-      .catch(error => console.error(error))
-    })
-    
+    createUser(data.email, data.password).then((result) => {
+      const loggedUser = result.user;
+      console.log(loggedUser);
+      updateUserProfile(data.name, data.photoURL)
+        .then(() => {
+          // create user entry in the database
+          const userInfo = {
+            name: data.name,
+            email: data.email,
+          };
+          axiosPublic.post("/users", userInfo).then((res) => {
+            if (res.data.insertedId) {
+              console.log('user added to the database')
+              reset();
+              Swal.fire({
+                position: "center",
+                icon: "success",
+                title: "User Created Successfully",
+                showConfirmButton: false,
+                timer: 1500,
+              });
+              navigate("/");
+            }
+          });
+        })
+        .catch((error) => console.error(error));
+    });
   };
   return (
     <div>
@@ -83,7 +93,9 @@ const Signup = () => {
                   className="input input-bordered"
                 />
                 {errors.PhotoURL && (
-                  <span className="text-red-500">*PhotoURL field is required</span>
+                  <span className="text-red-500">
+                    *PhotoURL field is required
+                  </span>
                 )}
               </div>
               <div className="form-control">
@@ -113,28 +125,30 @@ const Signup = () => {
                     required: true,
                     minLength: 6,
                     maxLength: 20,
-                    pattern:/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/
+                    pattern:
+                      /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
                   })}
                   className="input input-bordered"
                 />
-                {errors.password?.type === 'required' && (
+                {errors.password?.type === "required" && (
                   <span className="text-red-500">
-                    *password field is required 
+                    *password field is required
                   </span>
                 )}
-                {errors.password?.type === 'minLength' && (
+                {errors.password?.type === "minLength" && (
                   <span className="text-red-500">
-                    *password field is required with min 6 char 
+                    *password field is required with min 6 char
                   </span>
                 )}
-                {errors.password?.type === 'maxLength' && (
+                {errors.password?.type === "maxLength" && (
                   <span className="text-red-500">
                     *password field is required with max 20 char
                   </span>
                 )}
-                {errors.password?.type === 'pattern' && (
+                {errors.password?.type === "pattern" && (
                   <span className="text-red-500">
-                    * At least one uppercase letter, one lowercase letter, one number and one special character
+                    * At least one uppercase letter, one lowercase letter, one
+                    number and one special character
                   </span>
                 )}
               </div>
@@ -142,8 +156,15 @@ const Signup = () => {
                 <button className="btn btn-primary">Signup</button>
               </div>
             </form>
-            <p className='text-center mb-5'><small>Already Have an Account ? <Link className='text-orange-500' to='/login'>Login</Link></small></p>
-
+            <SocialLogin/>
+            <p className="text-center mb-5">
+              <small>
+                Already Have an Account ?{" "}
+                <Link className="text-orange-500" to="/login">
+                  Login
+                </Link>
+              </small>
+            </p>
           </div>
         </div>
       </div>
